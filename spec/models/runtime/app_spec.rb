@@ -951,6 +951,7 @@ module VCAP::CloudController
         app.add_route(route)
         expect {
           app.destroy
+          route.refresh
         }.to change { route.apps.collect(&:guid) }.from([app.guid]).to([])
       end
 
@@ -964,14 +965,14 @@ module VCAP::CloudController
         }.to change { ServiceBinding.where(:id => service_binding.id).count }.from(1).to(0)
       end
 
-      it "should destroy all dependent crash events" do
+      it "should not destroy all dependent crash events" do
         app_event = AppEvent.make(:app => app)
 
         expect {
           app.destroy(savepoint: true)
-        }.to change {
+        }.not_to change {
           AppEvent.where(:id => app_event.id).count
-        }.from(1).to(0)
+        }.from(1)
       end
     end
 

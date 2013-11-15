@@ -152,6 +152,7 @@ module VCAP::CloudController
     def before_create
       super
       set_new_version
+      raise Sequel::DatabaseError, "/space/" if self.space_id.nil?
     end
 
     def before_save
@@ -215,6 +216,12 @@ module VCAP::CloudController
     def footprint_changed?
       (column_changed?(:production) || column_changed?(:memory) ||
         column_changed?(:instances))
+    end
+    
+    def destroy(savepoint=:true)
+        self.db.transaction(savepoint: true) do
+        self.soft_delete unless self.not_deleted.nil?
+     end
     end
 
     def after_destroy
