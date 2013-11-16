@@ -946,6 +946,16 @@ module VCAP::CloudController
         AppObserver.should_receive(:deleted).with(app)
         app.destroy(savepoint: true)
       end
+ 
+      it "should not change anything for soft deleted apps when destroy is called" do
+         app.soft_delete
+ 
+         expect {
+           app.destroy(savepoint: true)
+         }.not_to change {
+           App.deleted.where(:id => [app.id])
+         }
+      end
 
       it "should nullify the routes" do
         app.add_route(route)
@@ -1190,6 +1200,12 @@ module VCAP::CloudController
         let(:org) { Organization.make(:quota_definition => quota) }
         let(:space) { Space.make(:organization => org) }
         let!(:app) { AppFactory.make(:space => space, :memory => 64, :instances => 2) }
+        
+        it "should not save an app with null space id if its not soft deleted" do
+          app.space_id=nil
+          app.not_deleted=true
+          expect { app.save }.to raise_error(Sequel::ValidationFailed,/space presence/)
+        end
 
         it "should raise error when quota is exceeded" do
           app.memory = 65

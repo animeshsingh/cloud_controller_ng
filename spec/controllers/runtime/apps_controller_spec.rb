@@ -184,6 +184,7 @@ module VCAP::CloudController
           Loggregator.should_not_receive(:emit)
           expect {update_app}.to raise_error
         end
+
       end
 
       describe "update app debug" do
@@ -246,6 +247,16 @@ module VCAP::CloudController
           end
         end
       end
+      
+      context "when space is not provided" do
+        let(:app_obj) { AppFactory.make }
+        let(:update_hash) {{ :space_guid => nil }}
+
+       it "should not allow space guid to be set to null for not deletd apps" do
+          expect {update_app}.to raise_error
+       end
+      end
+
 
       context "when detected buildpack is not provided" do
         let(:update_hash) do
@@ -257,7 +268,7 @@ module VCAP::CloudController
           last_response.status.should == 201
         end
       end
-
+ 
       context "when detected buildpack is provided" do
         before { update_hash[:detected_buildpack] = 'new-buildpack-name' }
 

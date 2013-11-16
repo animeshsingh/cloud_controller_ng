@@ -152,7 +152,7 @@ module VCAP::CloudController
     def before_create
       super
       set_new_version
-      raise Sequel::DatabaseError, "/space/" if self.space_id.nil?
+      raise Sequel::DatabaseError, "space" if self.space_id.nil?
     end
 
     def before_save
@@ -160,6 +160,8 @@ module VCAP::CloudController
         raise VCAP::Errors::AppPackageInvalid.new(
           "bits have not been uploaded")
       end
+
+      raise Sequel::DatabaseError, "space" if (self.space_id.nil? && self.not_deleted)
 
       super
 
@@ -221,7 +223,7 @@ module VCAP::CloudController
     def destroy(savepoint=:true)
         self.db.transaction(savepoint: true) do
         self.soft_delete unless self.not_deleted.nil?
-     end
+        end
     end
 
     def after_destroy
