@@ -161,8 +161,6 @@ module VCAP::CloudController
           "bits have not been uploaded")
       end
 
-      raise Sequel::DatabaseError, "space" if (self.space_id.nil? && self.not_deleted)
-
       super
 
       self.stack ||= Stack.default

@@ -81,6 +81,11 @@ module VCAP::CloudController
       Event.record_app_delete_request(app, SecurityContext.current_user, params["recursive"] == "true")
     end
 
+    def before_update(app)
+      spaceid = request_attrs["space_guid"]
+      raise VCAP::Errors::SpaceInvalid.new("") if ( !spaceid.nil? && (spaceid.to_s.eql?("nil") || spaceid.to_s.eql?("none")))
+    end
+
     def after_update(app)
       stager_response = app.last_stager_response
       if stager_response && stager_response.streaming_log_url

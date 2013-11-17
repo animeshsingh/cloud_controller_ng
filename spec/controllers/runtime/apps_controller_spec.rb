@@ -248,15 +248,19 @@ module VCAP::CloudController
         end
       end
       
-      context "when space is not provided" do
-        let(:app_obj) { AppFactory.make }
-        let(:update_hash) {{ :space_guid => nil }}
+     context "when space is not provided" do
+        let(:app_obj_new) {AppFactory.make(:space_guid=>"abc")}
 
-       it "should not allow space guid to be set to null for not deletd apps" do
-          expect {update_app}.to raise_error
-       end
+        let(:space_hash)do
+         { "space_guid" => "nil"}
+        end
+
+        it "should not allow space to be nullified for not deletd apps" do
+          put "/v2/apps/#{app_obj_new.guid}", Yajl::Encoder.encode(space_hash), json_headers(admin_headers)
+          expect(last_response.status).to eql 400
+          expect(decoded_response["description"]).to match /The app space info is invalid/
+        end
       end
-
 
       context "when detected buildpack is not provided" do
         let(:update_hash) do
